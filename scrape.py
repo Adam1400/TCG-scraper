@@ -2,6 +2,9 @@
 import hashlib
 from lxml import html
 import requests
+import time
+import os
+from os import path
 
   
 
@@ -168,7 +171,7 @@ def get_sanctioned_decks(tournamanet_format, num_tournaments, top_cut):
 
     print("Got", len(tournaments), "tournaments!")
 
-    h = open('archive/decks/'+'hashed_decks.txt', "r")
+    h = open('archive/decks/'+spacifics+'hashed_decks.txt', "r")
     check = h.read().splitlines()
     h.close()
 
@@ -222,10 +225,11 @@ def get_sanctioned_decks(tournamanet_format, num_tournaments, top_cut):
                         break
             except:
                 print("error retiving deck")
+                time.sleep(5)
         
         index+=1
 
-    h = open('archive/decks/'+'hashed_decks.txt', "r")
+    h = open('archive/decks/'+spacifics+'hashed_decks.txt', "r")
     final = h.read().splitlines()
     h.close()
 
@@ -236,11 +240,12 @@ def get_sanctioned_decks(tournamanet_format, num_tournaments, top_cut):
       
 def get_online_decks(tournamanet_format, num_tournaments, top_cut, redundancy):
     #top_cut -1 gets all lists
+    global spacifics
     tournaments = get_online_tournaments(tournamanet_format, num_tournaments)
 
     print("Got", len(tournaments), "tournaments!")
 
-    h = open('archive/decks/'+'hashed_decks.txt', "r")
+    h = open('archive/decks/'+spacifics+'hashed_decks.txt', "r")
     check = h.read().splitlines()
     h.close()
 
@@ -313,10 +318,11 @@ def get_online_decks(tournamanet_format, num_tournaments, top_cut, redundancy):
                     placement += 1
             except:
                 print("error retriving deck")
+                time.sleep(5)
 
         index +=1
 
-    h = open('archive/decks/'+'hashed_decks.txt', "r")
+    h = open('archive/decks/'+spacifics+'hashed_decks.txt', "r")
     final = h.read().splitlines()
     h.close()
 
@@ -441,7 +447,8 @@ def hash_deck(link, name, deck, gamer, record):
 
 
 def save_deck(deck):
-    
+    global spacifics
+
     name = deck.name
     format = deck.format
     cards = deck.cards
@@ -453,12 +460,14 @@ def save_deck(deck):
     losses = deck.losses
     ties = deck.ties
     id = deck.id
+
     
-    h = open('archive/decks/'+'hashed_decks.txt', "a")
+
+    h = open('archive/decks/'+spacifics+'hashed_decks.txt', "a")
     h.write(str(id)+'\n')
     h.close()
 
-    f = open('archive/decks/'+format+'_decks.txt', "a")
+    f = open('archive/decks/'+spacifics+format+'_decks.txt', "a")
 
     f.write(name +'\n')
     f.write(format+'\n')
@@ -484,6 +493,24 @@ def save_deck(deck):
     f.write(id+'\n')
     f.write("*** \n")
     f.close()
+
+def check_path():
+    global spacifics
+    global top_cut
+
+    if(top_cut != -1):
+        spacifics = 'top' + str(top_cut)+ '/'
+        sub_der = 'top' + str(top_cut)
+    else:
+        spacifics = 'all/'
+        sub_der = 'all'
+
+    if(path.exists('archive/decks/'+spacifics+'hashed_decks.txt')):
+        print("path found")
+    else:
+        dir = os.getcwd() + '/archive/decks/'+sub_der
+        os.makedirs(dir)
+        open('archive/decks/'+spacifics+'hashed_decks.txt', "w")
         
 def get_decks(format, number_of_tournaments, top_cut, location, redundancy):
     """
@@ -492,16 +519,17 @@ def get_decks(format, number_of_tournaments, top_cut, location, redundancy):
     top_cut => -1 == all lists
     location ==> all, online, sanctioned 
     """
+    check_path()
 
     if location == 'all':
-        h = open('archive/decks/'+'hashed_decks.txt', "r")
+        h = open('archive/decks/'+spacifics+'hashed_decks.txt', "r")
         start = h.read().splitlines()
         h.close()
 
         get_online_decks(format, number_of_tournaments, top_cut, redundancy)
         get_sanctioned_decks(format, number_of_tournaments, top_cut, redundancy) 
 
-        h = open('archive/decks/'+'hashed_decks.txt', "r")
+        h = open('archive/decks/'+spacifics+'hashed_decks.txt', "r")
         final = h.read().splitlines()
         h.close()
 
