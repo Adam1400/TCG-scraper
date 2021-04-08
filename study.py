@@ -5,11 +5,11 @@ import hashlib
 
 def load_data(path):
     global hashes 
-    f = open('archive/decks/top1/hashed_decks.txt')
+    f = open('archive/decks/all/hashed_decks.txt')
     hashes = f.read().splitlines()
     f.close()
 
-    d = open('archive/decks/top1/standard_decks.txt')
+    d = open('archive/decks/all/standard_decks.txt')
     raw_decks = d.read().splitlines()
 
     deck = []
@@ -86,8 +86,17 @@ def convert_to_dictionary(deck_lists):
 
             
 
-print("go")
+print("loading...")
 deck_lists = load_data('')
-print(deck_lists)
+
+for x in deck_lists:
+    if x['gamer'] == 'Allen Adams':
+        print(x['name'], x['gamer'], x['record'])
+        for card in x['cards']:
+            print(card['copies'], card['name'])
+        print()
+
+
+
 
         
