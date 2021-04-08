@@ -165,7 +165,7 @@ def get_sanctioned_tournements(request_format, number_of_tournys):
 
     return events
 
-def get_sanctioned_decks(tournamanet_format, num_tournaments, top_cut):
+def get_sanctioned_decks(tournamanet_format, num_tournaments, top_cut, redundancy):
     #top_cut -1 gets all lists
     tournaments = get_sanctioned_tournements(tournamanet_format, num_tournaments)
 
@@ -547,7 +547,7 @@ def get_decks(format, number_of_tournaments, top_cut, location, redundancy):
 
     
 num_tournaments = -1
-top_cut = -1
+top_cut = 1
 format = 'all'
 location = 'all'
 redundancy = False
