@@ -13,7 +13,7 @@ from requests.models import DEFAULT_REDIRECT_LIMIT
 class tournament:
     def __init__(self, name, date, format, enteries, region, id, link):
         self.name = name
-        self.date = date
+        self.date = date #Y/M/D
         self.format = format
         self.enteries = enteries
         self.region = region # online is region
@@ -27,7 +27,7 @@ class deck:
         self.name = name
         self.cards = cards
         self.format = format
-        self.date = date
+        self.date = date #Y/M/D
         self.event = event
         self.record = record # 0-0-0 format
         self.placement = placement
