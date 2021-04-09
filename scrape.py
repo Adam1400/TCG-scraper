@@ -6,6 +6,8 @@ import time
 import os
 from os import path
 
+from requests.models import DEFAULT_REDIRECT_LIMIT
+
   
 
 class tournament:
@@ -20,11 +22,13 @@ class tournament:
 
 
 class deck:
-    def __init__(self, id, name, cards, format, record, placement, gamer, wins, losses, ties):
+    def __init__(self, id, name, cards, format, date, event, record, placement, gamer, wins, losses, ties):
         self.id = id# unique hash of the deck
         self.name = name
         self.cards = cards
         self.format = format
+        self.date = date
+        self.event = event
         self.record = record # 0-0-0 format
         self.placement = placement
         self.gamer = gamer # player name
@@ -137,7 +141,13 @@ def get_sanctioned_tournements(request_format, number_of_tournys):
 
             dates = names = tree.xpath('//table/tr/td/text()')
             dates = dates[::2]
-            date = dates[index]
+            raw_date = dates[index].split(' ')
+            months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+            
+            raw_date[1]
+            month = months.index(raw_date[1])
+
+            date = "20"+str(raw_date[-1])+"-"+str(month+1)+"-"+str(raw_date[0])
 
             names = tree.xpath('//table/tr/td/a/text()')
             names = names[::2]
@@ -207,7 +217,7 @@ def get_sanctioned_decks(tournamanet_format, num_tournaments, top_cut, redundanc
                     deck_list = scrape_list(event.region, link)
                     record = '?'
                     id = hash_deck(link, name, deck_list, gamer, record)
-
+                   
 
                     if(id in check):
                         if(redundancy == False):
@@ -218,7 +228,7 @@ def get_sanctioned_decks(tournamanet_format, num_tournaments, top_cut, redundanc
                     else:
 
                         print("tournement",index, "| saved list", placement, "| id:",id)
-                        save_deck(deck(id,name, deck_list, event.format, '?', placement, gamer, '?','?','?'))
+                        save_deck(deck(id,name, deck_list, event.format, event.date, event.name, '?', placement, gamer, '?','?','?'))
 
             
                 if(placement == top_cut + 1):
@@ -309,7 +319,7 @@ def get_online_decks(tournamanet_format, num_tournaments, top_cut, redundancy):
                         else:
                             print("redundant deck found | id:", id)
                     else:
-                        save_deck(deck(id, name, deck_list, format, record, placement, gamer, wins, losses, ties))
+                        save_deck(deck(id, name, deck_list, format, event.date, event.name, record, placement, gamer, wins, losses, ties))
                         print("tournement",index, "| saved list", placement, "| id:",id)
 
                     if(placement == top_cut):
@@ -453,6 +463,8 @@ def save_deck(deck):
     format = deck.format
     cards = deck.cards
         
+    date = deck.date
+    event = deck.event
     placement = deck.placement
     gamer = deck.gamer
     record = deck.record
@@ -460,6 +472,7 @@ def save_deck(deck):
     losses = deck.losses
     ties = deck.ties
     id = deck.id
+    
 
     
 
@@ -480,7 +493,8 @@ def save_deck(deck):
             f.write(" "+ card.set +" "+ card.num +" "+card.type+ "\n")
         except:
             f.write(" "+ card.type+'\n')
-
+    f.write(date+'\n')
+    f.write(event+'\n')
     f.write(str(placement)+'\n')
     try:
         f.write(gamer+'\n')
@@ -547,12 +561,14 @@ def get_decks(format, number_of_tournaments, top_cut, location, redundancy):
 
     
 num_tournaments = -1
-top_cut = 1
+top_cut = -1
 format = 'all'
 location = 'all'
 redundancy = False
 
 get_decks(format, num_tournaments, top_cut, location, redundancy)
+get_decks(format, num_tournaments, 8, location, redundancy)
+get_decks(format, num_tournaments, 1, location, redundancy)
 
 
 

@@ -33,7 +33,7 @@ def convert_to_dictionary(deck_lists):
     decks = []
     for data in deck_lists:
         cards = []
-        for c in data[2:-8]:
+        for c in data[2:-10]:
             
             card = c.split(' ')
             copies = card[0]
@@ -68,6 +68,8 @@ def convert_to_dictionary(deck_lists):
         'name' : data[0],
         'format' : data[1],
         'cards' : cards,
+        'date' : data[-9],
+        'event' : data[-8],
         'placement' : data[-7],
         'gamer' : data[-6],
         'record' : data[-5],
@@ -90,10 +92,14 @@ print("loading...")
 deck_lists = load_data('')
 
 for x in deck_lists:
-    if x['gamer'] == 'Allen Adams':
+    if x['gamer'] == 'JC Sharp':
         print(x['name'], x['gamer'], x['record'])
         for card in x['cards']:
-            print(card['copies'], card['name'])
+            print(card['copies'], card['name'], end=' ')
+            if(card['type'] == 'pokemon'):
+                print(card['set'], card['num'])
+            else:
+                print()
         print()
 
 
