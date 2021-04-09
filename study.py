@@ -2,6 +2,7 @@
 import os
 from os import path
 import hashlib
+import datetime
 
 def load_data(path):
     global hashes 
@@ -68,7 +69,7 @@ def convert_to_dictionary(deck_lists):
         'name' : data[0],
         'format' : data[1],
         'cards' : cards,
-        'date' : data[-9],
+        'date' : datetime.datetime.strptime(data[-9],'%Y-%m-%d'),
         'event' : data[-8],
         'placement' : data[-7],
         'gamer' : data[-6],
@@ -90,17 +91,19 @@ def convert_to_dictionary(deck_lists):
 
 print("loading...")
 deck_lists = load_data('')
+standard = datetime.datetime(2019, 1, 1)
 
 for x in deck_lists:
-    if x['gamer'] == 'JC Sharp':
-        print(x['name'], x['gamer'], x['record'])
-        for card in x['cards']:
-            print(card['copies'], card['name'], end=' ')
-            if(card['type'] == 'pokemon'):
-                print(card['set'], card['num'])
-            else:
-                print()
-        print()
+    if x['date'] >= standard:
+        if(x['gamer'] == 'Allen Adams'):
+            print(x['name'], x['gamer'], x['record'], x['event'], x['date'])
+            for card in x['cards']:
+                print(card['copies'], card['name'], end=' ')
+                if(card['type'] == 'pokemon'):
+                    print(card['set'], card['num'])
+                else:
+                    print()
+            print()
 
 
 
