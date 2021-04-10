@@ -4,8 +4,13 @@ from os import path
 import hashlib
 import datetime
 
-def load_data(path):
+def load_decks(path):
+    #name of the folder in archive/decks
     global hashes 
+    global deck_lists
+
+    print("loading...")
+
     f = open('archive/decks/all/hashed_decks.txt')
     hashes = f.read().splitlines()
     f.close()
@@ -24,7 +29,7 @@ def load_data(path):
             deck = []
         count += 1
     
-    return convert_to_dictionary(decks)
+    deck_lists = convert_to_dictionary(decks)
 
 
 
@@ -35,36 +40,48 @@ def convert_to_dictionary(deck_lists):
     for data in deck_lists:
         cards = []
         for c in data[2:-10]:
-            
-            card = c.split(' ')
-            copies = card[0]
-            card_type = card[-1]
-            card.remove(card[0])
-            card.remove(card[-1])
-
-            if(card_type == 'pokemon'):
-                num = card[-1]
-                set = card[-2]
-                card.remove(card[-2])
+            try: 
+                card = c.split(' ')
+                copies = card[0]
+                card_type = card[-1]
+                
+                card.remove(card[0])
                 card.remove(card[-1])
-                card_name = ' '.join(card)
-                this_card = {
-                'copies' : copies,
-                'name' : card_name,
-                'type' : card_type,
-                'set' : set,
-                'num' : num
-                }
-            else:
-                card_name = ' '.join(card)
-                this_card = {
-                'copies' : copies,
-                'name' : card_name,
-                'type' : card_type,
-                }
-            
-            cards.append(this_card)
+
+                if(card_type == 'pokemon'):
+                    num = card[-1]
+                    set = card[-2]
+                    card.remove(card[-2])
+                    card.remove(card[-1])
+                    card_name = ' '.join(card)
+                    this_card = {
+                    'copies' : copies,
+                    'name' : card_name,
+                    'type' : card_type,
+                    'set' : set,
+                    'num' : num
+                    }
+                else:
+                    card_name = ' '.join(card)
+                    this_card = {
+                    'copies' : copies,
+                    'name' : card_name,
+                    'type' : card_type,
+                    }
+                
+                cards.append(this_card)
+            except:
+                cards = []
   
+        try:
+            wins = int(data[-4])
+            losses =int(data[-3])
+            ties = int(data[-2])
+        except:
+            wins = data[-4]
+            losses = data[-3]
+            ties = data[-2]
+
         deck = {
         'name' : data[0],
         'format' : data[1],
@@ -74,9 +91,9 @@ def convert_to_dictionary(deck_lists):
         'placement' : int(data[-7]),
         'gamer' : data[-6],
         'record' : data[-5],
-        'wins' : int(data[-4]),
-        'losses' : int(data[-3]),
-        'ties' : int(data[-2]),
+        'wins' : wins,
+        'losses' : losses,
+        'ties' : ties,
         'id' : data[-1],
         }
 
@@ -87,10 +104,10 @@ def convert_to_dictionary(deck_lists):
         
 
 
-            
+           
 
-print("loading...")
-deck_lists = load_data('')
+
+load_decks('all')
 
 
 def search(date=datetime.datetime(2000, 1, 1), player='', deck_name='', placement=0, top_cut=0, event=''):
@@ -107,7 +124,7 @@ def search(date=datetime.datetime(2000, 1, 1), player='', deck_name='', placemen
     if player != '':
         lists_by_player = []
         for deck in lists:
-            if(deck['player'] == player):
+            if(deck['gamer'] == player):
                 lists_by_player.append(deck)
         
         lists = lists_by_player
@@ -153,25 +170,19 @@ def search(date=datetime.datetime(2000, 1, 1), player='', deck_name='', placemen
 
 
     
+jc = search(deck_name='Coalossal', top_cut=8, player='Allen Adams')
 
 
+for deck in jc:
+    print(deck['name'], "|",deck['date'])
+    print(deck['record'])
+    print("placement ==>",deck['placement'])
+    for card in deck['cards']:
+        print(card['copies'],  card['name'])
+    
+    
+    print()
 
-
-
-
-for x in deck_lists:
-    if x['date'] >= standard:
-        if(x['gamer'] == 'Allen Adams'):
-            print(x['name'], x['gamer'], x['record'], x['event'], x['date'])
-            for card in x['cards']:
-                print(card['copies'], card['name'], end=' ')
-                if(card['type'] == 'pokemon'):
-                    print(card['set'], card['num'])
-                else:
-                    print()
-            print()
-
-
-
+print(len(jc))
 
         
