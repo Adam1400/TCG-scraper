@@ -71,12 +71,12 @@ def convert_to_dictionary(deck_lists):
         'cards' : cards,
         'date' : datetime.datetime.strptime(data[-9],'%Y-%m-%d'),
         'event' : data[-8],
-        'placement' : data[-7],
+        'placement' : int(data[-7]),
         'gamer' : data[-6],
         'record' : data[-5],
-        'wins' : data[-4],
-        'losses' : data[-3],
-        'ties' : data[-2],
+        'wins' : int(data[-4]),
+        'losses' : int(data[-3]),
+        'ties' : int(data[-2]),
         'id' : data[-1],
         }
 
@@ -91,7 +91,73 @@ def convert_to_dictionary(deck_lists):
 
 print("loading...")
 deck_lists = load_data('')
-standard = datetime.datetime(2019, 1, 1)
+
+
+def search(date=datetime.datetime(2000, 1, 1), player='', deck_name='', placement=0, top_cut=0, event=''):
+    global deck_lists
+    lists = deck_lists
+    if date != datetime.datetime(2000, 1, 1):
+        lists_by_date = []
+        for deck in lists:
+            if(deck['date'] >= date):
+                lists_by_date.append(deck)
+
+        lists = lists_by_date
+    
+    if player != '':
+        lists_by_player = []
+        for deck in lists:
+            if(deck['player'] == player):
+                lists_by_player.append(deck)
+        
+        lists = lists_by_player
+
+    if deck_name != '':
+        lists_by_deck_name = []
+        for deck in lists:
+            if(deck['name'] == deck_name):
+                lists_by_deck_name.append(deck)
+
+        lists = lists_by_deck_name
+
+    if placement != 0:
+        lists_by_placement = []
+        for deck in lists:
+            if(deck['placement'] == placement):
+                lists_by_placement.append(deck)
+
+        lists = lists_by_placement
+
+    if top_cut != 0:
+        lists_by_top_cut = []
+        for deck in lists:
+            if(deck['placement'] <= top_cut):
+                lists_by_top_cut.append(deck)
+            
+        lists = lists_by_top_cut
+
+    if event != '':
+        lists_by_event = []
+        for deck in lists:
+            if(deck['event'] == event):
+                lists_by_event.append(deck)
+            
+        lists = lists_by_event
+
+    return lists
+
+    
+
+
+
+
+
+    
+
+
+
+
+
 
 for x in deck_lists:
     if x['date'] >= standard:

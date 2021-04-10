@@ -189,7 +189,7 @@ def get_sanctioned_decks(tournamanet_format, num_tournaments, top_cut, redundanc
     for event in tournaments:
 
         print()
-        print("working on tournament", index)
+        print("working on tournament", index, "/", len(tournaments), "|", event.name)
         
         url = event.link
         page = requests.get(url)
@@ -227,7 +227,7 @@ def get_sanctioned_decks(tournamanet_format, num_tournaments, top_cut, redundanc
                             print("redundant deck found | id:", id)
                     else:
 
-                        print("tournement",index, "| saved list", placement, "| id:",id)
+                        print("tournement",index, "| saved list", placement,"| id:",id,"|", name)
                         save_deck(deck(id,name, deck_list, event.format, event.date, event.name, '?', placement, gamer, '?','?','?'))
 
             
@@ -262,7 +262,7 @@ def get_online_decks(tournamanet_format, num_tournaments, top_cut, redundancy):
     index = 1
     for event in tournaments:
         print()
-        print("working on tournament", index)
+        print("working on tournament", index, "/", len(tournaments), "|", event.name)
         
         url = event.link
         page = requests.get(url)
@@ -320,7 +320,7 @@ def get_online_decks(tournamanet_format, num_tournaments, top_cut, redundancy):
                             print("redundant deck found | id:", id)
                     else:
                         save_deck(deck(id, name, deck_list, format, event.date, event.name, record, placement, gamer, wins, losses, ties))
-                        print("tournement",index, "| saved list", placement, "| id:",id)
+                        print("tournement",index, "| saved list", placement,"| id:",id,"|", name)
 
                     if(placement == top_cut):
                         break
@@ -494,7 +494,10 @@ def save_deck(deck):
         except:
             f.write(" "+ card.type+'\n')
     f.write(date+'\n')
-    f.write(event+'\n')
+    try:
+        f.write(event+'\n')
+    except:
+        f.write('?'+'\n')
     f.write(str(placement)+'\n')
     try:
         f.write(gamer+'\n')
