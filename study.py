@@ -11,30 +11,49 @@ def load_decks(path):
 
     print("loading...")
 
-    f = open('archive/decks/all/hashed_decks.txt')
-    hashes = f.read().splitlines()
-    f.close()
-
-    d = open('archive/decks/all/standard_decks.txt')
-    raw_decks = d.read().splitlines()
-
-    deck = []
-    decks = []
-    count = 0
-    for item in raw_decks:
-        if item != '*** ':
-            deck.append(item)
-        else:
-            decks.append(deck)
-            deck = []
-        count += 1
+    hashes = []
+    raw_decks = []
     
-    deck_lists = convert_to_dictionary(decks)
+    dir = os.getcwd() + '/archive/decks/'+path
+    if(os.path.exists(dir)):
+        for file in os.listdir(dir):
+            print(file.split('.txt')[0])
+            if (file.endswith(".txt")):
+                try:
+                    f = open(os.path.join(dir, file))
+                    if (file == 'hashed_decks.txt'):
+                        hashes = f.read().splitlines()
+                        f.close()
+                    else:
+                        raw_decks = raw_decks + f.read().splitlines()
+                        f.close()
+                except:
+                    print("error loading decks")
+    else:
+        print("no path with that name")
+    print()
 
+    if len(hashes) != 0:
+        deck = []
+        decks = []
+        count = 0
+        for item in raw_decks:
+            if item != '*** ':
+                deck.append(item)
+            else:
+                decks.append(deck)
+                deck = []
+            count += 1
+        
+        deck_lists = convert_to_dictionary(decks)
+    
+    else:
+        deck_lists = []
 
 
 def convert_to_dictionary(deck_lists):
     global decks
+    print("preparing decks...")
 
     decks = []
     for data in deck_lists:
@@ -98,19 +117,13 @@ def convert_to_dictionary(deck_lists):
         }
 
         decks.append(deck)
-
+    
+    print("DONE! | retrived", len(deck_lists),"decks")
+    print()
     return decks
 
-        
 
-
-           
-
-
-load_decks('all')
-
-
-def search(date=datetime.datetime(2000, 1, 1), player='', deck_name='', placement=0, top_cut=0, event=''):
+def search(date=datetime.datetime(2000, 1, 1), player='', deck_name='', placement=0, top_cut=0, event='', id='', format=''):
     global deck_lists
     lists = deck_lists
     if date != datetime.datetime(2000, 1, 1):
@@ -161,16 +174,31 @@ def search(date=datetime.datetime(2000, 1, 1), player='', deck_name='', placemen
             
         lists = lists_by_event
 
+    if id != '':
+        lists_by_id = []
+        for deck in lists:
+            if(deck['id'] == id):
+                lists_by_id.append(deck)
+            
+        lists = lists_by_id
+
+    if format != '':
+        lists_by_format = []
+        for deck in lists:
+            if(deck['format'] == id):
+                lists_by_format.append(deck)
+            
+        lists = lists_by_format
+
     return lists
-
     
 
 
 
 
 
-    
-jc = search(deck_name='Coalossal', top_cut=8, player='Allen Adams')
+load_decks('all')
+jc = search(deck_name='Coalossal',  player='Allen Adams')
 
 
 for deck in jc:
@@ -183,6 +211,6 @@ for deck in jc:
     
     print()
 
-print(len(jc))
+
 
         

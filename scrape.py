@@ -6,7 +6,6 @@ import time
 import os
 from os import path
 
-from requests.models import DEFAULT_REDIRECT_LIMIT
 
   
 
@@ -569,9 +568,9 @@ format = 'all'
 location = 'all'
 redundancy = False
 
+
 get_decks(format, num_tournaments, top_cut, location, redundancy)
-get_decks(format, num_tournaments, 8, location, redundancy)
-get_decks(format, num_tournaments, 1, location, redundancy)
+
 
 
 
