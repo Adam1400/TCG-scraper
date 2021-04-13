@@ -198,7 +198,7 @@ def search(date=datetime.datetime(2000, 1, 1), player='', deck_name='', placemen
 
 
 load_decks('all')
-jc = search(deck_name='Coalossal',  player='Allen Adams')
+jc = search(deck_name='Seismatoad', date=datetime.datetime(2020,1,1))
 
 
 for deck in jc:
