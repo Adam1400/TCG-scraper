@@ -193,14 +193,56 @@ def search(date=datetime.datetime(2000, 1, 1), player='', deck_name='', placemen
     return lists
     
 
+def show_averages(query):
+    unique_cards = {}
+    copies = 0
+    card_name = ''
+    total_decks = len(query)
+
+    for deck in query:
+        for card in deck['cards']:
+            copies = int(card['copies'])
+            card_name = card['name']
+
+            if card_name not in unique_cards:
+                unique_cards[card_name] = copies
+            else:
+                unique_cards[card_name] = unique_cards[card_name] + copies
+
+
+    #print(unique_cards)  
+
+    percentage = 0
+
+    for card in unique_cards:
+    
+        percentage = unique_cards[card]/total_decks
+        unique_cards[card] = round(percentage, 2)
+
+
+    sorted_usage = sorted(unique_cards.items(), key=lambda item: item[1], reverse=True)
+
+    for x in sorted_usage:
+        print(x)
+
+    print(total_decks)
+
+
+
+load_decks('test')
+query = search(deck_name='Lugia Archeops',top_cut = 1, date=datetime.datetime(2022,1,1) )
+
+
+show_averages(query)
 
 
 
 
-load_decks('all')
-jc = search(deck_name='Seismatoad', date=datetime.datetime(2020,1,1))
 
 
+
+
+"""
 for deck in jc:
     print(deck['name'], "|",deck['date'])
     print(deck['record'])
@@ -211,6 +253,6 @@ for deck in jc:
     
     print()
 
-
+"""
 
         

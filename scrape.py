@@ -61,30 +61,38 @@ def get_online_tournaments(request_format, number_of_tournys):
     #-1 number_of_tournys returns all tourny 
     
     print("fetching online tournament list...")
-
-    url = 'https://play.limitlesstcg.com/tournaments/completed?time=all'
+    next_page = 1
+    url = 'https://play.limitlesstcg.com/tournaments/completed?time=all&show=499&game=PTCG&format=all&type=all&page=' + str(next_page)
     page = requests.get(url)
     tree = html.fromstring(page.content)
 
     events = []
     
     for listing in tree.xpath('//table[@class="striped completed-tournaments"]/tr'): 
-        name = str(listing.get('data-name'))
-        date = str(listing.get('data-date')).split('T')[0].rstrip()
-        format = str(listing.get('data-format'))
-        enteries = str(listing.get('data-players'))
-        region = "online"
-        id = ''
-        link = ''
 
-        if(format == "4"):
-            format = "standard"
-        elif(format == "3"):
-            format = "expanded"
-        else:
-            format = "other"
-           
-        events.append(tournament(name, date, format, enteries, region, id, link))
+        try:
+            name = str(listing.get('data-name'))
+            date = str(listing.get('data-date')).split('T')[0].rstrip()
+            format = str(listing.get('data-format'))
+            enteries = str(listing.get('data-players'))
+            region = "online"
+            id = ''
+            link = ''
+
+            if(format == "4"):
+                format = "standard"
+            elif(format == "3"):
+                format = "expanded"
+            else:
+                format = "other"
+            
+            events.append(tournament(name, date, format, enteries, region, id, link))
+        except:
+            next_page+=1
+            #url = 'https://play.limitlesstcg.com/tournaments/completed?time=all&show=499&game=PTCG&format=all&type=all&page=' + str(next_page)
+            #page = requests.get(url)
+            #tree = html.fromstring(page.content)
+
 
     events.pop(0) # blank indexed at 0
     
@@ -123,7 +131,7 @@ def get_sanctioned_tournements(request_format, number_of_tournys):
     
     print("fetching sanctioned tournament list...")
 
-    url = 'https://limitlesstcg.com/tournaments/?time=all'
+    url = 'https://limitlesstcg.com/tournaments?time=all&show=499'
     page = requests.get(url)
     tree = html.fromstring(page.content)
 
