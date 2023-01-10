@@ -314,17 +314,27 @@ def show_averages(query):
         print(deck,'|', end=' ')
     print(total_decks,'lists')
     print('---------------------------------------------------------------------')
-    print('Card                                | Avg   | total | prupose')
+    print('Card                                  | Avg   | total | prupose')
     print('---------------------------------------------------------------------')
 
     name = ''
     avg = ''
     count = ''
+    whole_number_total = 0
+    sample_list = []
+    top_60_cards = []
     for card in sorted_usage:
         name = card[0]
         stripped_name = name.split(" (")[0]
         avg = str(card[1])
         count = str(round(total_decks* card[1]))
+        whole_number = int(round(card[1],0))
+
+        if whole_number == 0:
+            whole_number = 1
+
+
+        whole_number_total = whole_number_total + whole_number
         standard_card = ''
         
 
@@ -341,9 +351,60 @@ def show_averages(query):
         card_data = get_latest_print(stripped_name)
         sets = card_data['set']
         num = card_data['num']
-        name = stripped_name + ' ('+sets+' ' +num+')'
+        fullname = stripped_name + ' '+sets+' ' +num
 
         print(f'{name :<37} | {avg:<5} | {count:<5} | {standard_card:<5}')
+
+        if whole_number_total <= 60:
+            top_60_cards.append(whole_number)
+            top_60_cards.append(fullname)
+            top_60_cards.append(card_data['sub_classification'])
+            
+            sample_list.append(top_60_cards)
+            top_60_cards = []
+        
+    poke_count = 0
+    trainer_count = 0
+    energy_count = 0  
+
+    for card in sample_list:
+        if card[2] == 'pokemon':
+            poke_count+=card[0]
+   
+    for card in sample_list:
+        if card[2] == 'trainer':
+            trainer_count+=card[0]
+   
+    for card in sample_list:
+        if card[2] == 'energy':
+            energy_count+=card[0]
+
+    print()
+    print('---------------------------------------------------------------------')
+    print('SAMPLE LIST')
+    print('---------------------------------------------------------------------')
+  
+    print('Pokémon:',poke_count)
+    for card in sample_list:
+        if card[2] == 'pokemon':
+            print(card[0],card[1])
+    print()
+    print('Trainer:',trainer_count)
+    for card in sample_list:
+        if card[2] == 'trainer':
+            print(card[0],card[1])
+    print()
+    print('Energy:',energy_count)
+    for card in sample_list:
+        if card[2] == 'energy':
+            print(card[0],card[1])
+
+    print()
+    print('Total Cards:',poke_count+trainer_count+energy_count)
+
+        
+
+
 
      
 
@@ -394,9 +455,10 @@ load_cards()
 
 
 query = search(
-    deck_name= 'Lugia Archeops', 
+    #deck_name= 'Lugia Archeops', 
+    format= 'standard',
     top_cut=8,
-    #included_cards=['Rapid Strike Urshifu V', 'Lugia V'], 
+    included_cards=['Inteleon', 'Beedrill', 'Radiant Charizard', 'Cross Switcher'], 
     date=datetime.datetime(2022,1,1)
      )
 
@@ -414,10 +476,3 @@ show_averages(query)
 
 
 
-
-
-
-
-
-
-        
