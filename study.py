@@ -45,13 +45,13 @@ def load_decks(path):
                 deck = []
             count += 1
         
-        deck_lists = convert_to_dictionary(decks)
+        deck_lists = convert_decks_to_dictionary(decks)
     
     else:
         deck_lists = []
 
 
-def convert_to_dictionary(deck_lists):
+def convert_decks_to_dictionary(deck_lists):
     global decks
     print("preparing decks...")
 
@@ -123,7 +123,49 @@ def convert_to_dictionary(deck_lists):
     return decks
 
 
-def search(date=datetime.datetime(2000, 1, 1), player='', deck_name='', placement=0, top_cut=0, event='', id='', format=''):
+def load_cards():
+    global card_hashes 
+    global card_lists
+    card_hashes = []
+    raw_cards = []
+    
+    dir = os.getcwd() + '/archive/cards'
+    if(os.path.exists(dir)):
+        for file in os.listdir(dir):
+            print(file.split('.txt')[0])
+            if (file.endswith(".txt")):
+                try:
+                    f = open(os.path.join(dir, file))
+                    if (file == 'hashed_cards.txt'):
+                        card_hashes = f.read().splitlines()
+                        f.close()
+                    else:
+                        raw_cards = raw_cards + f.read().splitlines()
+                        f.close()
+                except:
+                    print("error loading cards")
+    else:
+        print("no path with that name")
+    print()
+
+    if len(card_hashes) != 0:
+        card = []
+        cards = []
+        count = 0
+        for item in raw_cards:
+            if item != '*** ':
+                card.append(item)
+            else:
+                cards.append(card)
+                card = []
+            count += 1
+        
+        card_lists = convert_cards_to_dictionary(cards)
+    
+    else:
+        card_lists = []
+
+def search(date=datetime.datetime(2000, 1, 1), included_cards = [], player='', deck_name='', placement=0, top_cut=0, event='', id='', format=''):
     global deck_lists
     lists = deck_lists
     if date != datetime.datetime(2000, 1, 1):
@@ -185,10 +227,13 @@ def search(date=datetime.datetime(2000, 1, 1), player='', deck_name='', placemen
     if format != '':
         lists_by_format = []
         for deck in lists:
-            if(deck['format'] == id):
+            if(deck['format'] == format):
                 lists_by_format.append(deck)
             
         lists = lists_by_format
+
+    if included_cards != []:       
+        lists = include_list_of_cards(included_cards,lists)
 
     return lists
     
@@ -197,12 +242,27 @@ def show_averages(query):
     unique_cards = {}
     copies = 0
     card_name = ''
+    set_name = ''
+    set_num = ''
     total_decks = len(query)
+    deck_names = []
 
     for deck in query:
+        if deck['name'] not in deck_names:
+            deck_names.append(deck['name'])
+        
         for card in deck['cards']:
             copies = int(card['copies'])
-            card_name = card['name']
+            try:
+                set_name = ' (' + card['set'] +')'
+                #+' '+  card['num']+')'
+            except:
+                set_name = ''
+
+            card_name = card['name'] + set_name 
+
+        
+
 
             if card_name not in unique_cards:
                 unique_cards[card_name] = copies
@@ -210,49 +270,90 @@ def show_averages(query):
                 unique_cards[card_name] = unique_cards[card_name] + copies
 
 
-    #print(unique_cards)  
-
     percentage = 0
 
     for card in unique_cards:
     
         percentage = unique_cards[card]/total_decks
-        unique_cards[card] = round(percentage, 2)
+        unique_cards[card] = round(percentage, 2)# round to the nearest 2 decimal 
 
 
     sorted_usage = sorted(unique_cards.items(), key=lambda item: item[1], reverse=True)
 
-    for x in sorted_usage:
-        print(x)
+    for deck in deck_names:   
+        print(deck,'|', end=' ')
+    print(total_decks,'lists')
+    print('---------------------------------------------------------------------')
+    print('Card                                | Avg   | total | prupose')
+    print('---------------------------------------------------------------------')
 
-    print(total_decks)
+    name = ''
+    avg = ''
+    count = ''
+    for card in sorted_usage:
+        name = card[0]
+        avg = str(card[1])
+        count = str(round(total_decks* card[1]))
+        standard_card = ''
+
+        if count == '0':
+            count = '1'
+
+        if card[1] <= 0.5:
+            standard_card = 'optional tech'
+        if card[1] >= 0.5:
+            standard_card = 'required tech'
+        if card[1] >= 2:
+            standard_card = 'consistancy'
+
+        print(f'{name:<35} | {avg:<5} | {count:<5} | {standard_card:<5}')
+
+     
+
+def include_card(specific_card, query):
+    filtered_lists = []
+    for deck in query:
+        for card in deck['cards']:
+            if card['name'] == specific_card:
+                filtered_lists.append(deck)
+    return filtered_lists
 
 
+def include_list_of_cards(list_of_contained_cards, query):
 
-load_decks('test')
-query = search(deck_name='Lugia Archeops',top_cut = 1, date=datetime.datetime(2022,1,1) )
-
-
-show_averages(query)
-
-
-
-
-
-
-
-
-"""
-for deck in jc:
-    print(deck['name'], "|",deck['date'])
-    print(deck['record'])
-    print("placement ==>",deck['placement'])
-    for card in deck['cards']:
-        print(card['copies'],  card['name'])
-    
+    for card in list_of_contained_cards:
+       query = include_card(card,query)
+       print('adding card constriant:',card ,'| Query size', len(query))
     
     print()
+    return query
 
-"""
+
+load_decks('all')
+query = search(
+    deck_name= 'Lightning', 
+    #top_cut=8,
+    #included_cards=['Rapid Strike Urshifu V', 'Lugia V'], 
+    date=datetime.datetime(2022,1,1)
+     )
+
+
+#show_averages(query)
+
+
+
+
+load_cards()
+
+
+
+
+
+
+
+
+
+
+
 
         
