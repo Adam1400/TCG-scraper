@@ -9,7 +9,7 @@ def load_decks(path):
     global hashes 
     global deck_lists
 
-    print("loading...")
+    print("loading decks...")
 
     hashes = []
     raw_decks = []
@@ -126,6 +126,9 @@ def convert_decks_to_dictionary(deck_lists):
 def load_cards():
     global card_hashes 
     global card_lists
+
+    print('loading cards...')
+
     card_hashes = []
     raw_cards = []
     
@@ -147,23 +150,50 @@ def load_cards():
     else:
         print("no path with that name")
     print()
+    
 
     if len(card_hashes) != 0:
         card = []
         cards = []
         count = 0
         for item in raw_cards:
-            if item != '*** ':
+            if item != '***':
                 card.append(item)
             else:
                 cards.append(card)
                 card = []
             count += 1
-        
+       
         card_lists = convert_cards_to_dictionary(cards)
     
     else:
         card_lists = []
+
+def convert_cards_to_dictionary(cards):
+   
+    print("preparing cards...")
+
+    all_cards = []
+    for data in cards:
+        card = {
+        'name' : data[0],
+        'classification' : data[1],
+        'type': data[2],
+        'sub_classification': data[3],
+        'full_setname': data[4],
+        'set': data[5],
+        'num': data[6],
+        'image': data[7],
+        'id': data[8],
+        }
+
+        all_cards.append(card)
+    
+    print("DONE! | retrived", len(all_cards),"cards")
+    print()
+    return(all_cards)
+            
+
 
 def search(date=datetime.datetime(2000, 1, 1), included_cards = [], player='', deck_name='', placement=0, top_cut=0, event='', id='', format=''):
     global deck_lists
@@ -292,9 +322,11 @@ def show_averages(query):
     count = ''
     for card in sorted_usage:
         name = card[0]
+        stripped_name = name.split(" (")[0]
         avg = str(card[1])
         count = str(round(total_decks* card[1]))
         standard_card = ''
+        
 
         if count == '0':
             count = '1'
@@ -306,7 +338,12 @@ def show_averages(query):
         if card[1] >= 2:
             standard_card = 'consistancy'
 
-        print(f'{name:<35} | {avg:<5} | {count:<5} | {standard_card:<5}')
+        card_data = get_latest_print(stripped_name)
+        sets = card_data['set']
+        num = card_data['num']
+        name = stripped_name + ' ('+sets+' ' +num+')'
+
+        print(f'{name :<37} | {avg:<5} | {count:<5} | {standard_card:<5}')
 
      
 
@@ -328,22 +365,49 @@ def include_list_of_cards(list_of_contained_cards, query):
     print()
     return query
 
+def get_latest_print(name):
+    cards = []
+    name = name.replace("'", "")
+    name = name.replace("Ã©","é")
+    for card in card_lists:
+        if card["name"] == name:
+            cards.append(card)
+    try:
+        return cards[-1]
+    except:
+        return  {
+        'name' : '',
+        'classification' : '',
+        'type': '',
+        'sub_classification': '',
+        'full_setname': '',
+        'set': '',
+        'num': '',
+        'image': '',
+        'id': ''
+        }
+
+
 
 load_decks('all')
+load_cards()
+
+
 query = search(
-    deck_name= 'Lightning', 
-    #top_cut=8,
+    deck_name= 'Lugia Archeops', 
+    top_cut=8,
     #included_cards=['Rapid Strike Urshifu V', 'Lugia V'], 
     date=datetime.datetime(2022,1,1)
      )
 
 
-#show_averages(query)
+show_averages(query)
 
 
 
 
-load_cards()
+
+
 
 
 

@@ -255,4 +255,4 @@ def save_card(card):
     h.close()
 
     
-get_cards('standard')
+get_cards('expanded')
