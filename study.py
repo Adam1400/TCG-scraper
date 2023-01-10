@@ -1,4 +1,4 @@
-
+import re
 import os
 from os import path
 import hashlib
@@ -323,9 +323,16 @@ def show_averages(query):
     whole_number_total = 0
     sample_list = []
     top_60_cards = []
+    regex_pattern = "\((.*?)\)"
     for card in sorted_usage:
         name = card[0]
         stripped_name = name.split(" (")[0]
+        
+        try:
+            stripped_set = re.findall(regex_pattern, name)[0]
+        except:
+            stripped_set = ''
+
         avg = str(card[1])
         count = str(round(total_decks* card[1]))
         whole_number = int(round(card[1],0))
@@ -348,10 +355,12 @@ def show_averages(query):
         if card[1] >= 2:
             standard_card = 'consistancy'
 
-        card_data = get_latest_print(stripped_name)
+        card_data = get_latest_print(stripped_name, stripped_set)
         sets = card_data['set']
         num = card_data['num']
         fullname = stripped_name + ' '+sets+' ' +num
+
+     
 
         print(f'{name :<37} | {avg:<5} | {count:<5} | {standard_card:<5}')
 
@@ -426,15 +435,22 @@ def include_list_of_cards(list_of_contained_cards, query):
     print()
     return query
 
-def get_latest_print(name):
+def get_latest_print(name, set = ''):
     cards = []
     name = name.replace("'", "")
     name = name.replace("Ã©","é")
+
     for card in card_lists:
-        if card["name"] == name:
-            cards.append(card)
+        if set != '':
+            if card["name"] == name:
+                if card["set"] == set:
+                    cards.append(card)
+        else:
+             if card["name"] == name:
+                cards.append(card)
+      
     try:
-        return cards[-1]
+        return cards[0]# rarity -1 is max 0 is low
     except:
         return  {
         'name' : '',
@@ -456,17 +472,14 @@ load_cards()
 
 query = search(
     #deck_name= 'Lugia Archeops', 
-    format= 'standard',
-    top_cut=8,
-    included_cards=['Inteleon', 'Beedrill', 'Radiant Charizard', 'Cross Switcher'], 
-    date=datetime.datetime(2022,1,1)
+    #format= 'standard',
+    #top_cut=1,
+    included_cards=['Keldeo EX'], 
+    #date=datetime.datetime(2023,1,1)
      )
 
 
 show_averages(query)
-
-
-
 
 
 
