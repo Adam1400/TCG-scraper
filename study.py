@@ -413,10 +413,6 @@ def show_averages(query):
 
         
 
-
-
-     
-
 def include_card(specific_card, query):
     filtered_lists = []
     for deck in query:
@@ -465,6 +461,80 @@ def get_latest_print(name, set = ''):
         }
 
 
+def get_optimal_cards(query):
+    unique_cards = {}
+    optimal_cards = []
+    copies = 0
+    card_name = ''
+    set_name = ''
+    total_decks = len(query)
+
+    for deck in query:
+        for card in deck['cards']:
+            copies = int(card['copies'])
+            try:
+                set_name = ' (' + card['set'] +')'
+                #+' '+  card['num']+')'
+            except:
+                set_name = ''
+
+            card_name = card['name'] + set_name 
+
+            if card_name not in unique_cards:
+                unique_cards[card_name] = copies
+            else:
+                unique_cards[card_name] = unique_cards[card_name] + copies
+
+
+    avg = 0
+    for card in unique_cards:
+        avg = unique_cards[card]/total_decks
+        unique_cards[card] = round(avg, 5)
+
+
+    sorted_usage = sorted(unique_cards.items(), key=lambda item: item[1], reverse=True)
+    
+
+    regex_pattern = "\((.*?)\)"
+    for card in sorted_usage:
+        name = card[0]
+        stripped_name = name.split(" (")[0]
+        count = round(total_decks* card[1])
+
+        if count == 0:
+            count  = 1
+
+        
+        try:
+            stripped_set = re.findall(regex_pattern, name)[0] #try to match on set
+        except:
+            stripped_set = ''
+
+
+        card_data = get_latest_print(stripped_name, stripped_set) 
+
+
+        single_card = {
+                    'name' : stripped_name,
+                    'classification' : card_data['classification'],
+                    'type': card_data['type'],
+                    'sub_classification': card_data['sub_classification'],
+                    'full_setname': card_data['full_setname'],
+                    'set': card_data['set'],
+                    'num': card_data['num'],
+                    'image': card_data['image'],
+                    'id': card_data['id'],
+                    'total_count': count,
+                    'avg_count': card[1],
+                    'copies': round(card[1],0)
+                    }
+    
+        optimal_cards.append(single_card)
+
+            
+                
+
+    return optimal_cards
 
 load_decks('all')
 load_cards()
@@ -473,19 +543,67 @@ load_cards()
 query = search(
     #deck_name= 'Lugia Archeops', 
     #format= 'standard',
-    #top_cut=1,
-    included_cards=['Keldeo EX'], 
+    #top_cut=8,
+    player='Allen Adams'
+    #included_cards=['Keldeo EX'], 
     #date=datetime.datetime(2023,1,1)
      )
 
 
-show_averages(query)
+
+#show_averages(query)
+optimal_cards = get_optimal_cards(query)
+
+
+
+def create_decklist(cards):
+    single_card = []
+    sixty_card_deck = []
+
+    for card in cards:
+
+
+        if len(sixty_card_deck) <= 60:
+                single_card.append()
+                
+                sixty_card_deck.append(single_card)
+                single_card = []
+            
+     
+        pokemon = []
+        trainers = []
+        energy = []
+
+        for card in sixty_card_deck:
+            if card[2] == 'pokemon':
+                this_card = list(card['copies'],card['name'],card['sub_classification'])
+                pokemon.append(card)
+                
+        for card in sixty_card_deck:
+            if card[2] == 'trainer':
+                this_card = list(card['copies'],card['name'],card['sub_classification'])
+                trainers.append(card)
+    
+        for card in sixty_card_deck:
+            if card[2] == 'energy':
+                this_card = list(card['copies'],card['name'],card['sub_classification'])
+                energy.append(card)
 
 
 
 
 
+      
 
+
+
+create_decklist(optimal_cards)
+
+            
+                
+
+
+            
 
 
 
