@@ -62,7 +62,7 @@ def get_online_tournaments(request_format, number_of_tournys):
     
     print("fetching online tournament list...")
     next_page = 1
-    url = 'https://play.limitlesstcg.com/tournaments/completed?time=all&show=499&game=PTCG&format=all&type=all&page=' + '4' #str(next_page)
+    url = 'https://play.limitlesstcg.com/tournaments/completed?time=all&show=499&game=PTCG&format=all&type=all&page=' + '1' #str(next_page)
     page = requests.get(url)
     tree = html.fromstring(page.content)
 

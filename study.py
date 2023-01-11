@@ -8,9 +8,10 @@ def load_decks(path):
     #name of the folder in archive/decks
     global hashes 
     global deck_lists
+    global working_deck_lists 
 
     print("loading decks...")
-
+    working_deck_lists = [] 
     hashes = []
     raw_decks = []
     
@@ -58,7 +59,7 @@ def convert_decks_to_dictionary(deck_lists):
     decks = []
     for data in deck_lists:
         cards = []
-        for c in data[2:-10]:
+        for c in data[2:-9]:
             try: 
                 card = c.split(' ')
                 copies = card[0]
@@ -265,151 +266,10 @@ def search(date=datetime.datetime(2000, 1, 1), included_cards = [], player='', d
     if included_cards != []:       
         lists = include_list_of_cards(included_cards,lists)
 
+    global num_queried_lists
+    num_queried_lists = len(lists)
     return lists
     
-
-def show_averages(query):
-    unique_cards = {}
-    copies = 0
-    card_name = ''
-    set_name = ''
-    set_num = ''
-    total_decks = len(query)
-    deck_names = []
-
-    for deck in query:
-        if deck['name'] not in deck_names:
-            deck_names.append(deck['name'])
-        
-        for card in deck['cards']:
-            copies = int(card['copies'])
-            try:
-                set_name = ' (' + card['set'] +')'
-                #+' '+  card['num']+')'
-            except:
-                set_name = ''
-
-            card_name = card['name'] + set_name 
-
-        
-
-
-            if card_name not in unique_cards:
-                unique_cards[card_name] = copies
-            else:
-                unique_cards[card_name] = unique_cards[card_name] + copies
-
-
-    percentage = 0
-
-    for card in unique_cards:
-    
-        percentage = unique_cards[card]/total_decks
-        unique_cards[card] = round(percentage, 2)# round to the nearest 2 decimal 
-
-
-    sorted_usage = sorted(unique_cards.items(), key=lambda item: item[1], reverse=True)
-
-    for deck in deck_names:   
-        print(deck,'|', end=' ')
-    print(total_decks,'lists')
-    print('---------------------------------------------------------------------')
-    print('Card                                  | Avg   | total | prupose')
-    print('---------------------------------------------------------------------')
-
-    name = ''
-    avg = ''
-    count = ''
-    whole_number_total = 0
-    sample_list = []
-    top_60_cards = []
-    regex_pattern = "\((.*?)\)"
-    for card in sorted_usage:
-        name = card[0]
-        stripped_name = name.split(" (")[0]
-        
-        try:
-            stripped_set = re.findall(regex_pattern, name)[0]
-        except:
-            stripped_set = ''
-
-        avg = str(card[1])
-        count = str(round(total_decks* card[1]))
-        whole_number = int(round(card[1],0))
-
-        if whole_number == 0:
-            whole_number = 1
-
-
-        whole_number_total = whole_number_total + whole_number
-        standard_card = ''
-        
-
-        if count == '0':
-            count = '1'
-
-        if card[1] <= 0.5:
-            standard_card = 'optional tech'
-        if card[1] >= 0.5:
-            standard_card = 'required tech'
-        if card[1] >= 2:
-            standard_card = 'consistancy'
-
-        card_data = get_latest_print(stripped_name, stripped_set)
-        sets = card_data['set']
-        num = card_data['num']
-        fullname = stripped_name + ' '+sets+' ' +num
-
-     
-
-        print(f'{name :<37} | {avg:<5} | {count:<5} | {standard_card:<5}')
-
-        if whole_number_total <= 60:
-            top_60_cards.append(whole_number)
-            top_60_cards.append(fullname)
-            top_60_cards.append(card_data['sub_classification'])
-            
-            sample_list.append(top_60_cards)
-            top_60_cards = []
-        
-    poke_count = 0
-    trainer_count = 0
-    energy_count = 0  
-
-    for card in sample_list:
-        if card[2] == 'pokemon':
-            poke_count+=card[0]
-   
-    for card in sample_list:
-        if card[2] == 'trainer':
-            trainer_count+=card[0]
-   
-    for card in sample_list:
-        if card[2] == 'energy':
-            energy_count+=card[0]
-
-    print()
-    print('---------------------------------------------------------------------')
-    print('SAMPLE LIST')
-    print('---------------------------------------------------------------------')
-  
-    print('Pokémon:',poke_count)
-    for card in sample_list:
-        if card[2] == 'pokemon':
-            print(card[0],card[1])
-    print()
-    print('Trainer:',trainer_count)
-    for card in sample_list:
-        if card[2] == 'trainer':
-            print(card[0],card[1])
-    print()
-    print('Energy:',energy_count)
-    for card in sample_list:
-        if card[2] == 'energy':
-            print(card[0],card[1])
-
-    print()
-    print('Total Cards:',poke_count+trainer_count+energy_count)
 
         
 
@@ -437,24 +297,26 @@ def get_latest_print(name, set = ''):
     name = name.replace("Ã©","é")
 
     for card in card_lists:
+        
         if set != '':
             if card["name"] == name:
                 if card["set"] == set:
                     cards.append(card)
         else:
-             if card["name"] == name:
+            if card["name"] == name:
                 cards.append(card)
+            
       
     try:
         return cards[0]# rarity -1 is max 0 is low
     except:
         return  {
-        'name' : '',
+        'name' : name,
         'classification' : '',
         'type': '',
         'sub_classification': '',
         'full_setname': '',
-        'set': '',
+        'set': set,
         'num': '',
         'image': '',
         'id': ''
@@ -470,6 +332,9 @@ def get_optimal_cards(query):
     total_decks = len(query)
 
     for deck in query:
+        if deck['name'] not in working_deck_lists:
+            working_deck_lists.append(deck['name'])#set working deck lists
+
         for card in deck['cards']:
             copies = int(card['copies'])
             try:
@@ -489,7 +354,7 @@ def get_optimal_cards(query):
     avg = 0
     for card in unique_cards:
         avg = unique_cards[card]/total_decks
-        unique_cards[card] = round(avg, 5)
+        unique_cards[card] = round(avg, 2)#decimal places in the avg
 
 
     sorted_usage = sorted(unique_cards.items(), key=lambda item: item[1], reverse=True)
@@ -512,7 +377,10 @@ def get_optimal_cards(query):
 
 
         card_data = get_latest_print(stripped_name, stripped_set) 
-
+        
+        copies = int(round(card[1]))
+        if copies == 0:
+            copies  = 1
 
         single_card = {
                     'name' : stripped_name,
@@ -526,84 +394,181 @@ def get_optimal_cards(query):
                     'id': card_data['id'],
                     'total_count': count,
                     'avg_count': card[1],
-                    'copies': round(card[1],0)
+                    'copies': copies
                     }
     
         optimal_cards.append(single_card)
 
-            
-                
-
     return optimal_cards
 
-load_decks('all')
+def create_decklist(cards):
+    sixty_card_deck = []
+    total_count = 0
+
+ 
+    for card in cards:
+        total_count = total_count + int(card['copies'])
+        if total_count <= 60:
+                sixty_card_deck.append(card)
+               
+                
+    pokemon = []
+    trainers = []
+    energy = []
+    poke_count = 0
+    trainer_count = 0
+    energy_count = 0 
+
+
+    for card in sixty_card_deck:
+        if card['sub_classification'] == 'pokemon':
+            pokemon.append(card)
+            poke_count+=card['copies']
+
+    for card in sixty_card_deck:
+        if card['sub_classification'] == 'trainer':
+            trainers.append(card)
+            trainer_count+=card['copies']
+
+    for card in sixty_card_deck:
+        if card['sub_classification'] == 'energy':
+            energy.append(card)
+            energy_count+=card['copies']
+
+    
+
+    export_list = 'Pokémon: '+str(poke_count)+'\n'
+
+    for card in pokemon:
+        export_list = export_list + str(card['copies'])+ ' ' + card['name'] + ' '+ card['set'] + ' '+ str(card['num']) + '\n'
+    
+    export_list = export_list + '\nTrainer: '+str(trainer_count)+'\n'
+
+    for card in trainers:
+        export_list = export_list + str(card['copies'])+ ' ' + card['name'] + ' '+ card['set'] + ' '+ str(card['num']) + '\n'
+    
+    export_list = export_list + '\nEnergy: '+str(energy_count)+'\n'
+
+    for card in energy:
+        export_list = export_list + str(card['copies'])+ ' ' + card['name'] + ' '+ card['set'] + ' '+ str(card['num']) + '\n'
+
+    export_list = export_list + '\nTotal Cards: '+str(poke_count+trainer_count+energy_count)
+
+
+    return export_list
+
+   
+def show_averages(optimal_cards):
+
+    for deck in working_deck_lists:
+        print(deck, '|', end=' ')
+
+    if len(working_deck_lists) > 0 :  
+        print(num_queried_lists, 'Lists')
+    print('---------------------------------------------------------------------')
+    print('Card                                  | Avg   | total | prupose')
+    print('---------------------------------------------------------------------')
+
+    for card in optimal_cards:
+        if card['avg_count'] > 0.01: ## cut out the cringe
+            avg = card['avg_count']
+            count = card['total_count']
+            card_purpose = ''
+            name = ''
+
+            if card['sub_classification'] == 'pokemon':
+                name = card['name'] +' ('+ card['set']+')'
+            else:
+                name = card['name']
+
+        
+            if avg <= 0.5:
+                card_purpose = 'optional tech'
+            if avg >= 0.5:
+                card_purpose = 'required tech'
+            if avg >= 2:
+                card_purpose = 'consistancy'
+
+            print(f'{name :<37} | {avg:<5} | {count:<5} | {card_purpose:<5}')
+
+    print('---------------------------------------------------------------------') 
+    print()  
+
+def show_decks(query):
+    for deck in query:
+        print('----------------------------------------------')
+        print(deck['name'],'|',deck['format'])
+        print('')
+        print('Tournament -->',deck['event'])
+        print('Date Played-->', deck['date'])
+        print('Record -->',deck['record'])
+        print(deck['gamer'],'placed',deck['placement'])
+        print('Deck ID -->',deck['id'])
+        print('')
+
+        deck_with_paired_info = []
+        for card in deck['cards']:
+          
+            try:
+                this_card = get_latest_print(card['name'], card['set'])
+            except:
+                this_card = get_latest_print(card['name'])
+
+            this_card['copies'] = int(card['copies'])
+
+            deck_with_paired_info.append(this_card)
+
+        
+        print(create_decklist(deck_with_paired_info))
+
+        
+
+        
+        print('----------------------------------------------')
+        print()
+
+
+load_decks('all')                    
 load_cards()
 
 
 query = search(
-    #deck_name= 'Lugia Archeops', 
+    deck_name= 'Eternatus', 
     #format= 'standard',
-    #top_cut=8,
-    player='Allen Adams'
-    #included_cards=['Keldeo EX'], 
-    #date=datetime.datetime(2023,1,1)
+    top_cut=8,
+    #player='ninjadrake',
+    #included_cards=['Arceus V'], 
+    date=datetime.datetime(2023,1,1)
      )
 
 
 
-#show_averages(query)
+#show_decks(query)
 optimal_cards = get_optimal_cards(query)
-
-
-
-def create_decklist(cards):
-    single_card = []
-    sixty_card_deck = []
-
-    for card in cards:
-
-
-        if len(sixty_card_deck) <= 60:
-                single_card.append()
-                
-                sixty_card_deck.append(single_card)
-                single_card = []
-            
-     
-        pokemon = []
-        trainers = []
-        energy = []
-
-        for card in sixty_card_deck:
-            if card[2] == 'pokemon':
-                this_card = list(card['copies'],card['name'],card['sub_classification'])
-                pokemon.append(card)
-                
-        for card in sixty_card_deck:
-            if card[2] == 'trainer':
-                this_card = list(card['copies'],card['name'],card['sub_classification'])
-                trainers.append(card)
-    
-        for card in sixty_card_deck:
-            if card[2] == 'energy':
-                this_card = list(card['copies'],card['name'],card['sub_classification'])
-                energy.append(card)
+show_averages(optimal_cards)
+print(create_decklist(optimal_cards))
 
 
 
 
 
-      
+
+        
 
 
 
-create_decklist(optimal_cards)
+
+
+
+
+ 
+
+
 
             
                 
 
 
             
-
 
 
