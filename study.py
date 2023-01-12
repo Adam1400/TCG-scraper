@@ -528,27 +528,31 @@ def show_decks(query):
         print()
 
 
-load_decks('all')                    
-load_cards()
+#load_decks('all')                    
+#load_cards()
 
 
-query = search(
-    deck_name= 'Lost Zone Box', 
-    format= 'standard',
+#query = search(
+    #deck_name= 'Lost Zone Box', 
+    #format= 'standard',
     #top_cut=8,
-    #player='ninjadrake',
-    included_cards=['Reshiram'], 
-    date=datetime.datetime(2023,1,1)
-     )
+    #player='Allen Adams',
+    #included_cards=['Reshiram'], 
+    #date=datetime.datetime(2023,1,1)
+    # )
 
 
 
 #show_decks(query)
-optimal_cards = get_optimal_cards(query)
-show_averages(optimal_cards)
-print(create_decklist(optimal_cards))
+#optimal_cards = get_optimal_cards(query)
+#show_averages(optimal_cards)
+#print(create_decklist(optimal_cards))
 
 
+
+
+
+    
 
 
 
