@@ -533,11 +533,11 @@ load_cards()
 
 
 query = search(
-    deck_name= 'Eternatus', 
-    #format= 'standard',
-    top_cut=8,
+    deck_name= 'Lost Zone Box', 
+    format= 'standard',
+    #top_cut=8,
     #player='ninjadrake',
-    #included_cards=['Arceus V'], 
+    included_cards=['Reshiram'], 
     date=datetime.datetime(2023,1,1)
      )
 
