@@ -5,6 +5,8 @@ import requests
 import time
 import os
 from os import path
+import datetime
+
 
 
   
@@ -134,6 +136,8 @@ def get_sanctioned_tournements(request_format, number_of_tournys):
     url = 'https://limitlesstcg.com/tournaments?time=all&show=499'
     page = requests.get(url)
     tree = html.fromstring(page.content)
+    
+    #print(len(tree.xpath('//table//tr/td/a')))
 
     events = []
     index = 0
@@ -142,26 +146,25 @@ def get_sanctioned_tournements(request_format, number_of_tournys):
             link = 'https://limitlesstcg.com' + listing.get('href')
             id = link.split('=')[-1]
             
-            format = tree.xpath('//table/tr/td/span/img[@class="formaticon"]')[index].get('alt').lower()
-            enteries = tree.xpath('//table/tr/td[@class="hidden-xs show-landscape"]/text()')[index]
-            region = tree.xpath('//table/tr/td/span/img[@class="flagicon"]')[index].get('alt')
+            format = tree.xpath('//table//img[@class="format"]')[index].get('alt').lower()
+            enteries = tree.xpath('//table//td[@class="landscape-only"]/text()')[index]
+            region = tree.xpath('//table//img[@class="flag"]')[index].get('alt')
 
-            dates = names = tree.xpath('//table/tr/td/text()')
-            dates = dates[::2]
-            raw_date = dates[index].split(' ')
-            months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
             
-            raw_date[1]
-            month = months.index(raw_date[1])
-
-            date = "20"+str(raw_date[-1])+"-"+str(month+1)+"-"+str(raw_date[0])
-
+            date = tree.xpath('//table//tr')[index+1].get('data-date')
+            #print(date)
+            
             names = tree.xpath('//table/tr/td/a/text()')
             names = names[::2]
             name = names[index]
             
             events.append(tournament(name, date, format, enteries, region, id, link))
             index+=1
+
+            if index >= len(tree.xpath('//table/tr/td/a'))/2 -2:
+                break
+
+            #print(name, index)
         
     
     if(request_format != "all"):
@@ -202,17 +205,16 @@ def get_sanctioned_decks(tournamanet_format, num_tournaments, top_cut, redundanc
         page = requests.get(url)
         tree = html.fromstring(page.content)
 
+
         deck_names = []
-        for name in tree.xpath('//tr/td/span'):
-            deck_names.append(name.get('title'))
-            
-        deck_names.pop(0)
-        deck_names = deck_names[::2]
+        for name in tree.xpath('//tr//span'):
+            deck_names.append(name.get('data-tooltip'))
+   
         
         placement = 0
         for element in tree.xpath('//tr/td/a'):
-            try:
-                if('/ranking/?' in element.get('href')):
+            #try:
+                if('/players/' in element.get('href')):
                     placement+=1 
                     
                             
@@ -240,10 +242,9 @@ def get_sanctioned_decks(tournamanet_format, num_tournaments, top_cut, redundanc
             
                 if(placement == top_cut + 1):
                         break
-            except:
-                print("error retiving deck")
-                time.sleep(5)
-        
+            #except:
+                #print("error retiving deck")
+                
         index+=1
 
     h = open('archive/decks/'+spacifics+'hashed_decks.txt', "r")
@@ -335,7 +336,7 @@ def get_online_decks(tournamanet_format, num_tournaments, top_cut, redundancy):
                     placement += 1
             except:
                 print("error retriving deck")
-                time.sleep(5)
+                #time.sleep(5)
 
         index +=1
 
@@ -395,11 +396,11 @@ def scrape_list(region, url):
 
     else:
         #scraping sanctioned tourny
-        raw_cards = tree.xpath('//span[@class="decklist-card-name"]/text()')
-        raw_copies = tree.xpath('//span[@class="decklist-card-count"]/text()')
+        raw_cards = tree.xpath('//span[@class="card-name"]/text()')
+        raw_copies = tree.xpath('//span[@class="card-count"]/text()')
         
-        raw_set_info = tree.xpath('//div[@class="decklist-column"]/p/a')
-        set_check = tree.xpath('//div[@class="decklist-column"]/p/a/span/img')
+        raw_set_info = tree.xpath('//a[@class="card-link"]')
+        set_check = tree.xpath('//img[@class="set"]')
         
         sets = []
         nums = []
@@ -500,7 +501,12 @@ def save_deck(deck):
             f.write(" "+ card.set +" "+ card.num +" "+card.type+ "\n")
         except:
             f.write(" "+ card.type+'\n')
-    f.write(date+'\n')
+
+    try:
+        f.write(str(date)+'\n')
+    except:
+        f.write('2000-1-1'+'\n')
+
     try:
         f.write(event+'\n')
     except:
@@ -550,8 +556,10 @@ def get_decks(format, number_of_tournaments, top_cut, location, redundancy):
         start = h.read().splitlines()
         h.close()
 
+        #get_sanctioned_decks(format, number_of_tournaments, top_cut, redundancy) #broken
+
         get_online_decks(format, number_of_tournaments, top_cut, redundancy)
-        get_sanctioned_decks(format, number_of_tournaments, top_cut, redundancy) 
+
 
         h = open('archive/decks/'+spacifics+'hashed_decks.txt', "r")
         final = h.read().splitlines()
@@ -577,7 +585,7 @@ location = 'all'
 redundancy = False
 
 
-#get_decks(format, num_tournaments, top_cut, location, redundancy)
+get_decks(format, num_tournaments, top_cut, location, redundancy)
 
 
 
