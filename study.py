@@ -460,17 +460,19 @@ def create_decklist(cards):
    
 def show_averages(optimal_cards):
 
+    raw_text = ''
+
     for deck in working_deck_lists:
-        print(deck, '|', end=' ')
+        raw_text += str(deck + ' | ' )
 
     if len(working_deck_lists) > 0 :  
-        print(num_queried_lists, 'Lists')
-    print('---------------------------------------------------------------------')
-    print('Card                                  | Avg   | total | prupose')
-    print('---------------------------------------------------------------------')
+        raw_text+=str(str(num_queried_lists)+ ' Lists\n')
+    raw_text+=str('---------------------------------------------------------------------\n')
+    raw_text+=str('Purpose            |  Avg   | Card\n')
+    raw_text+=str('---------------------------------------------------------------------\n')
 
     for card in optimal_cards:
-        if card['avg_count'] > 0.01: ## cut out the cringe
+        if card['avg_count'] > 0.05: ## cut out the cringe
             avg = card['avg_count']
             count = card['total_count']
             card_purpose = ''
@@ -487,24 +489,26 @@ def show_averages(optimal_cards):
             if avg >= 0.5:
                 card_purpose = 'required tech'
             if avg >= 2:
-                card_purpose = 'consistancy'
+                card_purpose = 'consistancy   '
 
-            print(f'{name :<37} | {avg:<5} | {count:<5} | {card_purpose:<5}')
+            raw_text+=str(card_purpose +'  |  '+ str(avg)  + '  |  ' +name +'\n')
 
-    print('---------------------------------------------------------------------') 
-    print()  
+    raw_text+=str('---------------------------------------------------------------------\n\n') 
+    return raw_text
+     
 
 def show_decks(query):
+    raw_text = ''
     for deck in query:
-        print('----------------------------------------------')
-        print(deck['name'],'|',deck['format'])
-        print('')
-        print('Tournament -->',deck['event'])
-        print('Date Played-->', deck['date'])
-        print('Record -->',deck['record'])
-        print(deck['gamer'],'placed',deck['placement'])
-        print('Deck ID -->',deck['id'])
-        print('')
+        raw_text+=str('----------------------------------------------\n')
+        raw_text+=str(deck['name']+' | '+ deck['format']+'\n\n')
+        
+        raw_text+=str('Tournament --> '+deck['event']+'\n')
+        raw_text+=str('Date Played--> '+ str(deck['date'])+'\n')
+        raw_text+=str('Record --> '+deck['record']+'\n')
+        raw_text+=str(deck['gamer']+' placed '+ str(deck['placement'])+'\n')
+        raw_text+=str('Deck ID --> ' +deck['id']+'\n\n')
+        
 
         deck_with_paired_info = []
         for card in deck['cards']:
@@ -519,35 +523,36 @@ def show_decks(query):
             deck_with_paired_info.append(this_card)
 
         
-        print(create_decklist(deck_with_paired_info))
+        raw_text+=str(create_decklist(deck_with_paired_info))
 
         
 
         
-        print('----------------------------------------------')
-        print()
+        raw_text+=str('\n----------------------------------------------\n\n')
+        
+    return raw_text
+
+"""""
+load_decks('all')                    
+load_cards()
 
 
-#load_decks('all')                    
-#load_cards()
-
-
-#query = search(
+query = search(
     #deck_name= 'Lost Zone Box', 
     #format= 'standard',
-    #top_cut=8,
-    #player='Allen Adams',
+    top_cut=8,
+    player='Allen Adams',
     #included_cards=['Reshiram'], 
     #date=datetime.datetime(2023,1,1)
-    # )
+     )
 
 
 
-#show_decks(query)
-#optimal_cards = get_optimal_cards(query)
-#show_averages(optimal_cards)
+print(show_decks(query))
+optimal_cards = get_optimal_cards(query)
+print(show_averages(optimal_cards))
 #print(create_decklist(optimal_cards))
-
+"""""
 
 
 

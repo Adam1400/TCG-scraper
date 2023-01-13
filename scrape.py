@@ -577,7 +577,7 @@ location = 'all'
 redundancy = False
 
 
-get_decks(format, num_tournaments, top_cut, location, redundancy)
+#get_decks(format, num_tournaments, top_cut, location, redundancy)
 
 
 
