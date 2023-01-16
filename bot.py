@@ -54,6 +54,10 @@ def run_discord_bot():
     client.run(TOKEN)
 
 def partition_string(string, length):
-    return [string[i:i+length] for i in range(0, len(string), length)]
+    if '.png' in string:
+        string = string.splitlines()
+        return string
+    else:
+        return [string[i:i+length] for i in range(0, len(string), length)]
 
 

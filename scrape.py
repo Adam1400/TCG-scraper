@@ -64,7 +64,7 @@ def get_online_tournaments(request_format, number_of_tournys):
     
     print("fetching online tournament list...")
     next_page = 1
-    url = 'https://play.limitlesstcg.com/tournaments/completed?time=all&show=499&game=PTCG&format=all&type=all&page=' + '1' #str(next_page)
+    url = 'https://play.limitlesstcg.com/tournaments/completed?time=all&show=30&game=PTCG&format=all&type=all&page=' + '1' #str(next_page)
     page = requests.get(url)
     tree = html.fromstring(page.content)
 
@@ -213,14 +213,13 @@ def get_sanctioned_decks(tournamanet_format, num_tournaments, top_cut, redundanc
         
         placement = 0
         for element in tree.xpath('//tr/td/a'):
-            #try:
-                if('/players/' in element.get('href')):
-                    placement+=1 
+            try:
+                
                     
                             
                 if('list' in element.get('href')):
                     link = 'https://limitlesstcg.com' + element.get('href')
-                    
+                    placement+=1 
                     name = deck_names[placement-1]
                     gamer = tree.xpath('//tr/td/a/text()')[placement-1]           
                     deck_list = scrape_list(event.region, link)
@@ -240,10 +239,10 @@ def get_sanctioned_decks(tournamanet_format, num_tournaments, top_cut, redundanc
                         save_deck(deck(id,name, deck_list, event.format, event.date, event.name, '?', placement, gamer, '?','?','?'))
 
             
-                if(placement == top_cut + 1):
+                if(placement == top_cut + 1) and top_cut != -1:
                         break
-            #except:
-                #print("error retiving deck")
+            except:
+                print("error retiving deck")
                 
         index+=1
 
@@ -585,7 +584,7 @@ location = 'all'
 redundancy = False
 
 
-get_decks(format, num_tournaments, top_cut, location, redundancy)
+#get_decks(format, num_tournaments, top_cut, location, redundancy)
 
 
 

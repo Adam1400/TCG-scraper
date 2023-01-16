@@ -78,7 +78,7 @@ def convert_decks_to_dictionary(deck_lists):
                     'copies' : copies,
                     'name' : card_name,
                     'type' : card_type,
-                    'set' : set,
+                    'set' : set.upper(),
                     'num' : num
                     }
                 else:
@@ -296,11 +296,13 @@ def get_latest_print(name, set = ''):
     name = name.replace("'", "")
     name = name.replace("Ã©","é")
 
+    #print(name+'|')
+
     for card in card_lists:
         
         if set != '':
             if card["name"] == name:
-                if card["set"] == set:
+                if card["set"] == set.upper():
                     cards.append(card)
         else:
             if card["name"] == name:
@@ -532,6 +534,63 @@ def show_decks(query):
         
     return raw_text
 
+
+
+
+def search_cards( name='', set='', num=0):
+    global card_lists
+    cards = card_lists
+
+    if name != '':
+        lists_by_card_name = []
+        for card in cards:
+            if(card['name'] == name):
+                lists_by_card_name.append(card)
+
+        cards = lists_by_card_name
+
+
+    if set != '':
+        lists_by_card_set = []
+        for card in cards:
+            if(card['set'] == set):
+                lists_by_card_set.append(card)
+
+        cards = lists_by_card_set
+
+    if num != 0:
+        lists_by_card_num = []
+        for card in cards:
+            if(int(card['num']) == num):
+                lists_by_card_num.append(card)
+
+        cards = lists_by_card_num
+
+    #print(cards)
+
+    global num_queried_cards
+    num_queried_cards = len(cards)
+    return cards
+    
+def get_card_image(query):
+    links = ''
+    for card in query:
+        #print(card['name'], card['set'])
+        links += (card['image']) +'\n'
+
+    return links
+
+
+def get_sets(query):
+    unique_set_lists = []
+    set_string = ''
+    for card in query:
+        if card['set'] not in unique_set_lists:
+            unique_set_lists.append(card['set'])
+            set_string += card['set'] +'-->  '+card['full_setname']+'\n'
+
+    return set_string
+
 """""
 load_decks('all')                    
 load_cards()
@@ -553,6 +612,8 @@ optimal_cards = get_optimal_cards(query)
 print(show_averages(optimal_cards))
 #print(create_decklist(optimal_cards))
 """""
+
+
 
 
 
