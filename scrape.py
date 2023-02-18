@@ -6,6 +6,7 @@ import time
 import os
 from os import path
 import datetime
+import pyodbc 
 
 
 
@@ -64,7 +65,7 @@ def get_online_tournaments(request_format, number_of_tournys):
     
     print("fetching online tournament list...")
     next_page = 1
-    url = 'https://play.limitlesstcg.com/tournaments/completed?time=all&show=30&game=PTCG&format=all&type=all&page=' + '1' #str(next_page)
+    url = 'https://play.limitlesstcg.com/tournaments/completed?time=all&show=60&game=PTCG&format=all&type=all&page=' + '1' #str(next_page)
     page = requests.get(url)
     tree = html.fromstring(page.content)
 
@@ -133,7 +134,7 @@ def get_sanctioned_tournements(request_format, number_of_tournys):
     
     print("fetching sanctioned tournament list...")
 
-    url = 'https://limitlesstcg.com/tournaments?time=all&show=499'
+    url = 'https://limitlesstcg.com/tournaments?time=all&show=5'
     page = requests.get(url)
     tree = html.fromstring(page.content)
     
@@ -206,22 +207,34 @@ def get_sanctioned_decks(tournamanet_format, num_tournaments, top_cut, redundanc
         tree = html.fromstring(page.content)
 
 
-        deck_names = []
+        all_deck_names = []
         for name in tree.xpath('//tr//span'):
-            deck_names.append(name.get('data-tooltip'))
+                all_deck_names.append(name.get('data-tooltip'))
+
+        indexofdecklist = []
+        indexposition = 0
+        for iodl in tree.xpath('//tr//i'):
+            indexofdecklist.append(indexposition)#this part is fucked. when row has no decklist it offests the whole thing on the gamer and deckname and placement
+            indexposition+=1
+
+        deck_names = []
+        for deckx in indexofdecklist:
+            deck_names.append(all_deck_names[deckx])
+
+        #print(deck_names)
+
    
         
         placement = 0
-        for element in tree.xpath('//tr/td/a'):
+        for element in tree.xpath('//tr//td//a'):
             try:
-                
-                    
                             
                 if('list' in element.get('href')):
                     link = 'https://limitlesstcg.com' + element.get('href')
                     placement+=1 
+
                     name = deck_names[placement-1]
-                    gamer = tree.xpath('//tr/td/a/text()')[placement-1]           
+                    gamer = tree.xpath('//tr/td//a/text()')[placement-1]           
                     deck_list = scrape_list(event.region, link)
                     record = '?'
                     id = hash_deck(link, name, deck_list, gamer, record)
@@ -235,7 +248,8 @@ def get_sanctioned_decks(tournamanet_format, num_tournaments, top_cut, redundanc
                             print("redundant deck found | id:", id)
                     else:
 
-                        print("tournement",index, "| saved list", placement,"| id:",id,"|", name)
+                        print("tournement",index, "| id:",id, "| saved list", placement,"| placed:", placement, '|',name)
+                        save_deck_to_db(deck(id,name, deck_list, event.format, event.date, event.name, '?', placement, gamer, '?','?','?'))
                         save_deck(deck(id,name, deck_list, event.format, event.date, event.name, '?', placement, gamer, '?','?','?'))
 
             
@@ -280,11 +294,26 @@ def get_online_decks(tournamanet_format, num_tournaments, top_cut, redundancy):
         deck_names = []
         
         count = 0
-        for element in tree.xpath('//table[@class="striped"]/tr/td'):
-            if(count // 7):
-                if(element.get('title') != None):
-                    deck_names.append(element.get('title'))
+
+        #for glc
+        for element in tree.xpath('//table[@class="striped"]/tr/td/a'):#glc only has a no span
+            text = element.xpath('text()')
+            
+            if(text == ['Psychic'] or text == ['Colorless'] or text == ['Dragon'] or text == ['Darkness'] or text == ['Fire'] or text == ['Water'] or text == ['Grass'] or text == ['Lightning'] or text == ['Metal'] or text == ['Fighting'] or text == ['Fairy'] ): #skip the elements that say they dropped
+                deck_names.append(element.xpath('text()')[0])
+                #print(text)
             count+=1
+
+        #for everything else
+        for element in tree.xpath('//table[@class="striped"]/tr/td//span'):#they keep chaning this thing. aded span and removed modulus 7
+            #print(element.xpath('text()'))
+            
+            if(element.xpath('text()') == []): #skip the elements that say they dropped
+                if(element.get('data-tooltip') != None):
+                    deck_names.append(element.get('data-tooltip'))
+            count+=1
+
+        #print(deck_names)
 
         deck_records = []
         w = []
@@ -326,6 +355,7 @@ def get_online_decks(tournamanet_format, num_tournaments, top_cut, redundancy):
                         else:
                             print("redundant deck found | id:", id)
                     else:
+                        save_deck_to_db(deck(id, name, deck_list, format, event.date, event.name, record, placement, gamer, wins, losses, ties))
                         save_deck(deck(id, name, deck_list, format, event.date, event.name, record, placement, gamer, wins, losses, ties))
                         print("tournement",index, "| saved list", placement,"| id:",id,"|", name)
 
@@ -523,6 +553,64 @@ def save_deck(deck):
     f.write("*** \n")
     f.close()
 
+
+def save_deck_to_db(deck):
+    
+    server = '(localdb)\Local' # Change this to the name of your local SQL Server instance
+    database = 'Pokemon' # Change this to the name of your database
+
+    cnxn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server};SERVER=' + server + ';DATABASE=' + database + ';Trusted_Connection=yes;')
+
+    cursor = cnxn.cursor()
+
+    name = deck.name
+    format = deck.format
+    cards = deck.cards
+        
+    date = str(deck.date)
+    event = deck.event
+    placement = str(deck.placement)
+    player = deck.gamer
+    record = deck.record
+    wins = str(deck.wins)
+    losses = str(deck.losses)
+    ties = str(deck.ties)
+    hash = deck.id
+    
+    for card in cards:
+        copies = card.copies
+        cardname= card.name
+        cardtype = card.type
+        
+        if cardtype == 'pokemon':
+            cardset = card.set
+            cardnum = str(card.num)
+        else:
+            cardset = 'NULL'
+            cardnum = 'NULL'
+
+        if "'" in cardname:
+            cardname = cardname.replace("'", "''")
+        try:
+            cursor.execute("INSERT INTO DeckLists ([ParentHash], [Copies], [Name], [Set], [Num], [Type]) VALUES ('"+hash+"', '"+copies+"', '"+cardname+"', '"+cardset+"', '"+cardnum+"', '"+cardtype+"')")
+            cnxn.commit()
+            #print("inserted card ",hash,cardname)
+        except:
+            #print("failed to insert card ",hash,cardname)
+            pass
+
+    try:    
+        # Insert a new row into the table
+        cursor.execute("INSERT INTO Decks ([Hash], [Name], [Format], [Date], [Event], [Placement], [Player], [Record], [Wins], [Losses], [Ties]) VALUES ('"+hash+"', '"+name+"', '"+format+"', '"+date+"', '"+event+"', '"+placement+"', '"+player+"', '"+record+"', '"+wins+"', '"+losses+"', '"+ties+"')")
+        cnxn.commit() # Commit the transaction
+        #print("inserted",hash,name)     
+    except:
+        #print("failed to insert",hash,name)
+        pass
+
+
+    cnxn.close()
+
 def check_path():
     global spacifics
     global top_cut
@@ -555,7 +643,7 @@ def get_decks(format, number_of_tournaments, top_cut, location, redundancy):
         start = h.read().splitlines()
         h.close()
 
-        #get_sanctioned_decks(format, number_of_tournaments, top_cut, redundancy) #broken
+        get_sanctioned_decks(format, number_of_tournaments, top_cut, redundancy) #kinda broken some lists arent getting saved at the bottom
 
         get_online_decks(format, number_of_tournaments, top_cut, redundancy)
 
@@ -574,7 +662,23 @@ def get_decks(format, number_of_tournaments, top_cut, location, redundancy):
     
 
 
-        
+def get_db_hashes():
+    server = '(localdb)\Local' # Change this to the name of your local SQL Server instance
+    database = 'Pokemon' # Change this to the name of your database
+
+    cnxn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server};SERVER=' + server + ';DATABASE=' + database + ';Trusted_Connection=yes;')
+
+    cursor = cnxn.cursor()
+
+    cursor.execute("select distinct [Hash] from Decks ")
+
+    hashes = []
+    rows = cursor.fetchall()
+    for row in rows:
+        hashes.append(str(row).replace("(","").replace(")", "").replace(",","").replace('"','').replace("'",'').replace(' ',''))
+
+    return
+          
 
     
 num_tournaments = -1
